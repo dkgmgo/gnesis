@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GNesis</title>
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="icon" href="data:,">
 </head>
 <body>
     <div id="app">
         <header id="topbar">
-            <div class="logo">G<span>Nesis</span>span></span></div>
+            <div class="logo">G<span>Nesis</span></div>
             <span>Interactive graph generation</span>
         </header>
         <aside id="sidebar">
@@ -25,25 +27,36 @@
             </div>
             <div id="controls-panel">
                 <div class="section-label">Controls</div>
-                <button>Start</button>
-                <button>Reset</button>
-                <button>Export</button>
+                <button class="btn-primary" id="btn-run">▶ RUN</button>
+                <button class="btn-secondary" id="btn-reset">↺ RESET</button>
+                <button class="btn-tertiary">Export</button>
                 <div id="speed-control">
-
+                    <label for="speed-range">Speed:</label>
+                    <input type="range" id="speed-range" min="1" max="100" value="30" style="flex:1">
+                    <span id="speed-val" style="font-size:0.65rem; color:var(--accent); width:16px; text-align:right;">30</span>
                 </div>
             </div>
             <div id="props-panel">
                 <div class="section-label">Properties</div>
-
+                <div class="prop"><span class="k">Nodes</span><span class="v" id="s-nodes">0</span></div>
+                <div class="prop"><span class="k">Edges</span><span class="v" id="s-edges">0</span></div>
+                <div class="prop"><span class="k">Max degree</span><span class="v" id="s-maxdeg">0</span></div>
+                <div class="prop"><span class="k">Avg degree</span><span class="v" id="s-avgdeg">0.00</span></div>
+                <div class="prop"><span class="k">Density</span><span class="v" id="s-density">0.000</span></div>
             </div>
         </aside>
-        <main id="canvas">
-            
+        <main id="canvas-area">
+            <svg id="graph-svg"></svg>
+            <div id="progressbar"></div>
+            <div id="step-badge">0 / 0</div>
+            <div id="tooltip"></div>
         </main>
-        <footer>
-
+        <footer id="statusbar">
+            <div class="dot idle" id="status-dot"></div>
+            <span id="status-msg">Ready. Select a generator and press RUN.</span>
+            <span style="margin-left:auto;">D3 v7 · force-directed layout</span>
         </footer>
     </div>
-    <script src="js/main.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
