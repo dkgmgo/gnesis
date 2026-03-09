@@ -1,10 +1,13 @@
 import { GridGenerator } from "./generators/grid.js";
+import { BarabasiAlbertGenerator } from "./generators/barabasi_albert.js";
 
 const grid_gen = new GridGenerator();
+const ba_gen = new BarabasiAlbertGenerator();
 
 export function list_generators() {
     return {
         '2d-grid': grid_gen,
+        'barabasi-albert': ba_gen
     }
 }
 
@@ -27,6 +30,7 @@ export function get_speed() {
 
 export function build_params_panel(gen) {
     const panel = document.getElementById('params-panel');
+    panel.innerHTML = '<div class="section-label">Parameters</div>'; // reset
     gen.params.forEach(p => {
         const row = document.createElement('div'); 
         row.className = 'param-row';
@@ -51,8 +55,10 @@ export function get_params(params) {
     return out;
 }
 
-export function set_status(msg, active=false) {
-    document.getElementById('status-msg').textContent = msg;
+export function set_status(msg, active=false, is_error=false) {
+    let status_msg = document.getElementById('status-msg')
+    status_msg.textContent = msg;
+    status_msg.className = is_error ? 'error' : '';
     document.getElementById('status-dot').className = 'dot' + (active ? '' : ' idle');
 }
 
@@ -98,10 +104,21 @@ export function tick(state, renderer) {
 }
 
 export function run(gen, state, renderer) {
-    if (state.running) { stop(state); return; }
+    if (state.running) { 
+        stop(state); return; 
+    }
+
+    const params = get_params(gen.params);
+    const params_not_ok = gen.check_params ? gen.check_params(params) : null;
+    if (params_not_ok) {
+        set_status(params_not_ok, true, true);
+        build_params_panel(gen);
+        return;
+    }
+
     if (state.stepIdx >= state.steps.length - 1) {
         // restart
-        state.steps = gen.build(get_params(gen.params));
+        state.steps = gen.build(params);
         state.stepIdx = 0;
         renderer.clear();
     }
@@ -112,11 +129,20 @@ export function run(gen, state, renderer) {
 }
 
 export function reset(gen, state, renderer) {
-  stop(state);
-  state.steps = gen.build(get_params(gen.params));
-  state.stepIdx = 0;
-  renderer.clear();
-  update_properties({ nodes:[], edges:[] });
-  update_progress(state.steps, state.stepIdx);
-  set_status('Reset. Press RUN to start.', false);
+    stop(state);
+
+    const params = get_params(gen.params);
+    const params_not_ok = gen.check_params ? gen.check_params(params) : null;
+    if (params_not_ok) {
+        set_status(params_not_ok, true, true);
+        build_params_panel(gen);
+        return;
+    }
+
+    state.steps = gen.build(params);
+    state.stepIdx = 0;
+    renderer.clear();
+    update_properties({ nodes:[], edges:[] });
+    update_progress(state.steps, state.stepIdx);
+    set_status('Reset. Press RUN to start.', false);
 }
