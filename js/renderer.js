@@ -27,6 +27,7 @@ export class GraphRenderer {
     update(snapshot) {
         this.nodes = snapshot.nodes.map(d => ({ ...d }));
         this.links = snapshot.edges.map(d => ({ ...d }));
+        const max_closeness =  Math.max(...this.nodes.map(n => n._closeness || 0));
 
         const deg = {}; // for sizing
         this.links.forEach(l => {
@@ -52,10 +53,10 @@ export class GraphRenderer {
         
         nodeEnter.append('circle')
             .attr('r', 0)
-            .style('fill', d => d._deg > 8 ? 'var(--hub)' : 'var(--node)') // TODO hubs ?? 
-            .style('stroke', d => d._deg > 8 ? 'rgba(255,77,109,0.3)' : 'rgba(0,229,255,0.25)')
-            .style('stroke-width', d => d._deg > 8 ? 3 : 1.5)
-            .style('filter', d => d._deg > 8 ? 'drop-shadow(0 0 6px var(--hub))' : 'drop-shadow(0 0 4px var(--node))')
+            .style('fill', d => d._closeness == max_closeness ? 'var(--hub)' : 'var(--node)')
+            .style('stroke', d => d._closeness == max_closeness ? 'rgba(255,77,109,0.3)' : 'rgba(0,229,255,0.25)')
+            .style('stroke-width', d => d._closeness == max_closeness ? 3 : 1.5)
+            .style('filter', d => d._closeness == max_closeness ? 'drop-shadow(0 0 6px var(--hub))' : 'drop-shadow(0 0 4px var(--node))')
             .transition().duration(400).ease(d3.easeElastic)
             .attr('r', d => Math.max(4, Math.min(14, 4 + d._deg * 1.5)));
 
@@ -63,8 +64,10 @@ export class GraphRenderer {
             .on('mouseout', () => this._hideTooltip());
 
         node.select('circle')
-            .style('fill', d => d._deg > 8 ? 'var(--hub)' : 'var(--node)') //hubs ??
-            .style('filter', d => d._deg > 8 ? 'drop-shadow(0 0 6px var(--hub))' : 'drop-shadow(0 0 4px var(--node))')
+            .style('fill', d => d._closeness == max_closeness ? 'var(--hub)' : 'var(--node)')
+            .style('stroke', d => d._closeness == max_closeness ? 'rgba(255,77,109,0.3)' : 'rgba(0,229,255,0.25)')
+            .style('stroke-width', d => d._closeness == max_closeness ? 3 : 1.5)
+            .style('filter', d => d._closeness == max_closeness ? 'drop-shadow(0 0 6px var(--hub))' : 'drop-shadow(0 0 4px var(--node))')
             .transition().duration(200)
             .attr('r', d => Math.max(4, Math.min(14, 4 + d._deg * 1.5)));
         node.exit().remove();
@@ -83,8 +86,9 @@ export class GraphRenderer {
     }
 
     _showTooltip(event, d) {
+        const clos = d._closeness ? d._closeness.toFixed(4) : 'Calculating...';
         const tt = document.getElementById('tooltip');
-        tt.innerHTML = `node ${d.id} &nbsp;·&nbsp; degree <span style="color:var(--accent)">${d._deg}</span>`;
+        tt.innerHTML = `node ${d.id} &nbsp;·&nbsp; degree <span style="color:var(--accent)">${d._deg}</span> &nbsp;·&nbsp; closeness <span style="color:var(--accent)">${clos}</span>`;
         tt.style.left = (event.offsetX + 12) + 'px';
         tt.style.top  = (event.offsetY - 28) + 'px';
         tt.style.opacity = 1;

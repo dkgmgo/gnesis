@@ -1,4 +1,4 @@
-import * as utils from './utils.js';
+import * as utils from './front_utils.js';
 import { GraphRenderer } from './renderer.js';
 
 const RENDERER = new GraphRenderer(document.getElementById('graph-svg'));

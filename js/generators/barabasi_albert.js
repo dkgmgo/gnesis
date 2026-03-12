@@ -1,3 +1,5 @@
+import * as utils from '../back_utils.js';
+
 export class BarabasiAlbertGenerator {
     constructor(){
         this.label = 'Barabási-Albert Model';
@@ -43,6 +45,7 @@ export class BarabasiAlbertGenerator {
             });
             steps.push({ nodes: nodes.map(d=>({...d})), edges: edges.map(d=>({...d})) });
         }
+        utils.closeness_centrality(steps[steps.length - 1]);
         return steps;
     }
 

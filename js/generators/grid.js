@@ -1,3 +1,5 @@
+import * as utils from '../back_utils.js';
+
 export class GridGenerator {
     constructor(){
         this.label = '2D Grid';
@@ -20,6 +22,7 @@ export class GridGenerator {
           steps.push({ nodes: nodes.map(d=>({...d})), edges: edges.map(d=>({...d})) });
         }
       }
+      utils.closeness_centrality(steps[steps.length - 1]);
       return steps;
     }
 }
