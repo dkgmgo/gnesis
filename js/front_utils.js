@@ -1,12 +1,18 @@
 import { GridGenerator } from "./generators/grid.js";
 import { BarabasiAlbertGenerator } from "./generators/barabasi_albert.js";
+import { ErdosRenyiGenerator } from "./generators/erdos_renyi.js";
+import { WattsStrogatzGenerator } from "./generators/watts-strogatz.js";
 
 const grid_gen = new GridGenerator();
 const ba_gen = new BarabasiAlbertGenerator();
+const er_gen = new ErdosRenyiGenerator();
+const ws_gen = new WattsStrogatzGenerator();
 
 export function list_generators() {
     return {
         '2d-grid': grid_gen,
+        'erdos-renyi': er_gen,
+        'watts-strogatz': ws_gen,
         'barabasi-albert': ba_gen
     }
 }

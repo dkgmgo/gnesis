@@ -64,23 +64,14 @@ export class BarabasiAlbertGenerator {
     }
 
     _weighted_random_choice(items, weights, seed) {
-        const rnd = this._mulberry32(seed)();
+        const p = utils.mulberry32(seed)();
         let cumulative = 0;
         for (let i = 0; i < items.length; i++) {
             cumulative += weights[i];
-            if (rnd < cumulative){
+            if (p < cumulative){
                 return items[i];
             }
         }
         return items[items.length - 1];
-    }
-
-    _mulberry32(seed) {
-        return function() {
-            seed |= 0; seed = seed + 0x6D2B79F5 | 0;
-            var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
-            t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-            return ((t ^ t >>> 14) >>> 0) / 4294967296;
-        }
     }
 }
