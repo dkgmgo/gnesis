@@ -68,7 +68,7 @@ export function set_status(msg, active=false, is_error=false) {
     document.getElementById('status-dot').className = 'dot' + (active ? '' : ' idle');
 }
 
-export function update_properties(snap) {
+export function update_properties(snap, deg_chart) {
     const n = snap.nodes.length, m = snap.edges.length;
     const deg = {};
     snap.edges.forEach(ed => {
@@ -84,6 +84,7 @@ export function update_properties(snap) {
     document.getElementById('s-maxdeg').textContent = maxD;
     document.getElementById('s-avgdeg').textContent = avgD.toFixed(2);
     document.getElementById('s-density').textContent = dens.toFixed(3);
+    deg_chart.update(snap)
 }
 
 export function update_progress(steps, stepIdx) {
@@ -99,17 +100,17 @@ export function stop(state) {
     set_status(`Done. ${state.steps.length-1} steps.`, false);
 }
 
-export function tick(state, renderer) {
+export function tick(state, renderer, deg_chart) {
     if (!state.running) return;
     if (state.stepIdx >= state.steps.length - 1) { stop(state); return; }
     state.stepIdx++;
     renderer.update(state.steps[state.stepIdx]);
-    update_properties(state.steps[state.stepIdx]);
+    update_properties(state.steps[state.stepIdx], deg_chart);
     update_progress(state.steps, state.stepIdx);
-    state.timer = setTimeout(() => tick(state, renderer), get_speed());
+    state.timer = setTimeout(() => tick(state, renderer, deg_chart), get_speed());
 }
 
-export function run(gen, state, renderer) {
+export function run(gen, state, renderer, deg_chart) {
     if (state.running) { 
         stop(state); return; 
     }
@@ -131,10 +132,10 @@ export function run(gen, state, renderer) {
     state.running = true;
     document.getElementById('btn-run').textContent = '⏸ PAUSE';
     set_status(`Running ${gen.label}…`, true);
-    tick(state, renderer);
+    tick(state, renderer, deg_chart);
 }
 
-export function reset(gen, state, renderer) {
+export function reset(gen, state, renderer, deg_chart) {
     stop(state);
 
     const params = get_params(gen.params);
@@ -148,7 +149,8 @@ export function reset(gen, state, renderer) {
     state.steps = gen.build(params);
     state.stepIdx = 0;
     renderer.clear();
-    update_properties({ nodes:[], edges:[] });
+    deg_chart.clear();
+    update_properties({ nodes:[], edges:[] }, deg_chart);
     update_progress(state.steps, state.stepIdx);
     set_status('Reset. Press RUN to start.', false);
 }

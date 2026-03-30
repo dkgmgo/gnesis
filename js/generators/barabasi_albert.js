@@ -9,9 +9,11 @@ export class BarabasiAlbertGenerator {
             { id: 'm0', label: 'Initial Number of Nodes', min: 1, max: 10, step: 1, default: 2 },
             { id: 'm', label: 'Edges per new Node', min: 1, max: 10, step: 1, default: 1 },
             { id: 't', label: 'Number of Time Steps', min: 1, max: 100, step: 1, default: 20 },
-            { id: 'seed', label: 'Random Seed', min: 0, max: 200, step: 1, default: 42 },
+            { id: 'seed', label: 'Random Seed', min: 0, max: 200, step: 1, default: 50 },
         ];
         this._degrees = {};
+        this._rng = null;
+        this._repeated_nodes = [];
     }
 
     check_params({ m0, m, t, seed }) {
@@ -23,7 +25,9 @@ export class BarabasiAlbertGenerator {
 
     build({ m0, m, t, seed }) {
         this._degrees = {};
-        const nodes = [], edges = [], steps = [];
+        this._rng = utils.mulberry32(seed);
+        this._repeated_nodes = [];
+        const nodes = [], edges = [], steps = []; 
 
         for (let i = 0; i < m0; i++) {
             nodes.push({ id: i, step: 0 });
@@ -31,17 +35,22 @@ export class BarabasiAlbertGenerator {
                 edges.push({ source: i, target: j, step: 0 });
                 this._degrees[i] = (this._degrees[i] || 0) + 1;
                 this._degrees[j] = (this._degrees[j] || 0) + 1;
+                this._repeated_nodes.push(i)
+                this._repeated_nodes.push(j)
             }
         }
         steps.push({ nodes: nodes.map(d=>({...d})), edges: edges.map(d=>({...d})) });
 
         for (let i = m0; i < m0 + t; i++) {
             nodes.push({ id: i, step: i - m0 + 1 });
-            const targets = this._preferential_attachment(nodes, m, seed);
+            this._degrees[i] = 0;
+            const targets = this._preferential_attachment(m);
             targets.forEach(tgt => {
                 edges.push({ source: i, target: tgt, step: i - m0 + 1 });
-                this._degrees[i] = (this._degrees[i] || 0) + 1;
+                this._degrees[i] += 1;
                 this._degrees[tgt] += 1;
+                this._repeated_nodes.push(i)
+                this._repeated_nodes.push(tgt)
             });
             steps.push({ nodes: nodes.map(d=>({...d})), edges: edges.map(d=>({...d})) });
         }
@@ -49,29 +58,14 @@ export class BarabasiAlbertGenerator {
         return steps;
     }
 
-    _preferential_attachment(nodes, m, seed) {
+    _preferential_attachment(m) {
         let targets = new Set();
-        let avail = nodes.map(n => n.id).filter(id => id !== nodes.length - 1); // exclude the new node itself
+
         while (targets.size < m) {
-            const degs = avail.map(id => this._degrees[id] || 0);
-            const totalDeg = degs.reduce((a,b) => a+b, 0) || 1;
-            const weights = degs.map(d => d / totalDeg);
-            const tgt = this._weighted_random_choice(avail, weights, seed);
+            const idx = Math.floor(this._rng() * this._repeated_nodes.length);
+            const tgt = this._repeated_nodes[idx];
             targets.add(tgt);
-            avail = avail.filter(id => id !== tgt);
         }
         return Array.from(targets);
-    }
-
-    _weighted_random_choice(items, weights, seed) {
-        const p = utils.mulberry32(seed)();
-        let cumulative = 0;
-        for (let i = 0; i < items.length; i++) {
-            cumulative += weights[i];
-            if (p < cumulative){
-                return items[i];
-            }
-        }
-        return items[items.length - 1];
     }
 }

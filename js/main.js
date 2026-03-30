@@ -1,7 +1,9 @@
 import * as utils from './front_utils.js';
-import { GraphRenderer } from './renderer.js';
+import { GraphRenderer } from './vis/renderer.js';
+import { DegreeChart } from './vis/degree_chart.js'
 
 const RENDERER = new GraphRenderer(document.getElementById('graph-svg'));
+const DEG_CHART = new DegreeChart(document.getElementById('deg-chart-svg'));
 const GENERATORS = utils.list_generators();
 let state = {
     currentGen : '2d-grid',
@@ -15,11 +17,11 @@ document.getElementById('btn-run').addEventListener('click', () => {
     if (state.steps.length === 0){
         state.steps = GENERATORS[state.currentGen].build(utils.get_params(GENERATORS[state.currentGen].params));
     }
-    utils.run(GENERATORS[state.currentGen], state, RENDERER);
+    utils.run(GENERATORS[state.currentGen], state, RENDERER, DEG_CHART);
 });
 
 document.getElementById('btn-reset').addEventListener('click', () => {
-    utils.reset(GENERATORS[state.currentGen], state, RENDERER);
+    utils.reset(GENERATORS[state.currentGen], state, RENDERER, DEG_CHART);
 });
 
 document.getElementById('speed-range').addEventListener('input', e => {
@@ -41,7 +43,7 @@ document.querySelectorAll('.gen-btn').forEach(btn => {
         btn.classList.add('active');
         state.currentGen = btn.dataset.gen;
         utils.build_params_panel(GENERATORS[state.currentGen]);
-        utils.reset(GENERATORS[state.currentGen], state, RENDERER);
+        utils.reset(GENERATORS[state.currentGen], state, RENDERER, DEG_CHART);
     });
 });
 
