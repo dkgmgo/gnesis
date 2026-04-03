@@ -23,6 +23,7 @@ export class GridGenerator {
         }
       }
       utils.closeness_centrality(steps[steps.length - 1]);
+      utils.ollivier_ricci_curvature(steps[steps.length - 1]);
       return steps;
     }
 }

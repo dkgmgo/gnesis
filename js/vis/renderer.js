@@ -40,6 +40,9 @@ export class GraphRenderer {
         link.enter().append('line')
             .attr('class','link')
             .style('opacity',0)
+            .style('stroke', d => d._curv ? d._curv < 0 ? 'var(--hub)' : 'rgba(0,250,0,0.3)' : 'rgba(0,229,255,0.25)')
+            .on('mouseover', (event, d) => this._showTooltip_edge(event, d))
+            .on('mouseout', () => this._hideTooltip())
             .transition().duration(300).style('opacity',1);
         link.exit().remove();
 
@@ -60,7 +63,7 @@ export class GraphRenderer {
             .transition().duration(400).ease(d3.easeElastic)
             .attr('r', d => Math.max(4, Math.min(14, 4 + d._deg * 1.5)));
 
-        nodeEnter.on('mouseover', (event, d) => this._showTooltip(event, d))
+        nodeEnter.on('mouseover', (event, d) => this._showTooltip_node(event, d))
             .on('mouseout', () => this._hideTooltip());
 
         node.select('circle')
@@ -85,10 +88,20 @@ export class GraphRenderer {
             .attr('transform', d => `translate(${d.x},${d.y})`);
     }
 
-    _showTooltip(event, d) {
+    _showTooltip_node(event, d) {
         const clos = d._closeness ? d._closeness.toFixed(4) : 'Calculating...';
         const tt = document.getElementById('tooltip');
         tt.innerHTML = `node ${d.id} &nbsp;·&nbsp; degree <span style="color:var(--accent)">${d._deg}</span> &nbsp;·&nbsp; closeness <span style="color:var(--accent)">${clos}</span>`;
+        tt.style.left = (event.offsetX + 12) + 'px';
+        tt.style.top  = (event.offsetY - 28) + 'px';
+        tt.style.opacity = 1;
+    }
+    _showTooltip_edge(event, d){
+        const curv = d._curv != null ? d._curv.toFixed(4) : 'N/A';
+        const src = d.source.id ?? d.source;
+        const tgt = d.target.id ?? d.target;
+        const tt = document.getElementById('tooltip');
+        tt.innerHTML = `edge ${src} → ${tgt} &nbsp;·&nbsp; curvature <span style="color:var(--accent)">${curv}</span>`;
         tt.style.left = (event.offsetX + 12) + 'px';
         tt.style.top  = (event.offsetY - 28) + 'px';
         tt.style.opacity = 1;

@@ -2,10 +2,14 @@
 
 GNesis (**G**raph <ins>ge**Nesis**</ins>) is a playground for exploring graph generation concepts.
 
-## Implemented Models
+### Generators
 
 - Erdős-Rényi
 - Barabási-Albert
 - Watts-Strogatz
 
-## Adding a new model
+### Metrics
+
+- Degree distribution
+- Closeness centrality
+- Ricci curvature
