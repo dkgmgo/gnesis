@@ -34,19 +34,18 @@ new ResizeObserver(entries => {
 }).observe(document.getElementById('canvas-area'));
 
 
-utils.build_generators_panel(GENERATORS, state.currentGen);
+utils.build_generators_select(GENERATORS, state.currentGen);
 
-document.querySelectorAll('.gen-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        utils.stop(state);
-        document.querySelectorAll('.gen-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.currentGen = btn.dataset.gen;
-        utils.build_params_panel(GENERATORS[state.currentGen]);
-        utils.reset(GENERATORS[state.currentGen], state, RENDERER, DEG_CHART);
-    });
+const select = document.getElementById('generators-select');
+select.addEventListener('change', () => {
+    utils.stop(state);
+    state.currentGen = select.value;
+    document.getElementById('gen-desc').textContent = GENERATORS[state.currentGen].description;
+    utils.build_params_panel(GENERATORS[state.currentGen]);
+    utils.reset(GENERATORS[state.currentGen], state, RENDERER, DEG_CHART);
 });
 
+document.getElementById('gen-desc').textContent = GENERATORS[state.currentGen].description;
 utils.build_params_panel(GENERATORS[state.currentGen]);
 state.steps = GENERATORS[state.currentGen].build(utils.get_params(GENERATORS[state.currentGen].params));
 utils.set_status('Ready. Press RUN to start.', false);

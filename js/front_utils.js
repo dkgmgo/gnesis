@@ -3,12 +3,14 @@ import { BarabasiAlbertGenerator } from "./generators/barabasi_albert.js";
 import { ErdosRenyiGenerator } from "./generators/erdos_renyi.js";
 import { WattsStrogatzGenerator } from "./generators/watts-strogatz.js";
 import { RGGGenerator } from "./generators/geometric.js";
+import { SBMGenerator } from "./generators/sbm.js";
 
 const grid_gen = new GridGenerator();
 const ba_gen = new BarabasiAlbertGenerator();
 const er_gen = new ErdosRenyiGenerator();
 const ws_gen = new WattsStrogatzGenerator();
 const rgg_gen = new RGGGenerator();
+const sbm_gen = new SBMGenerator();
 
 export function list_generators() {
     return {
@@ -16,19 +18,22 @@ export function list_generators() {
         'erdos-renyi': er_gen,
         'watts-strogatz': ws_gen,
         'barabasi-albert': ba_gen,
-        'random-geometric': rgg_gen
+        'random-geometric': rgg_gen,
+        'sbm': sbm_gen
     }
 }
 
-export function build_generators_panel(gens, currentGen) {
-    const panel = document.getElementById('generators-list');
+export function build_generators_select(gens, currentGen) {
+    const select = document.getElementById('generators-select');
+    select.innerHTML = '';
     Object.values(gens).forEach(gen => {
-        const div = document.createElement('div');
-        div.innerHTML = `<button class="gen-btn ${gen.id === currentGen ? 'active' : ''}" data-gen="${gen.id}">
-            <span class="gen-name">${gen.label}</span>
-            <span class="gen-desc">${gen.description}</span>
-            </button>`;
-        panel.appendChild(div);
+        const opt = document.createElement('option');
+        opt.value = gen.id;
+        opt.textContent = gen.label
+        if(gen.id === currentGen){
+            opt.selected = true;
+        }
+        select.appendChild(opt)
     });
 }
 
