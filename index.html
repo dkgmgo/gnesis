@@ -38,7 +38,7 @@
                 <div id="control-buttons">
                     <button class="btn-primary" id="btn-run">▶ RUN</button>
                     <button class="btn-secondary" id="btn-reset">↺ RESET</button>
-                    <button class="btn-tertiary">Export</button>
+                    <button class="btn-tertiary" id="btn-filt">◆ FILTRATION</button>
                 </div>
                 <div id="speed-control">
                     <label for="speed-range">Speed:</label>
@@ -60,6 +60,10 @@
             <div id="deg-chart-wrap">
                 <div id="deg-chart-title">Degree distribution</div>
                 <svg id="deg-chart-svg" height="110"></svg>
+            </div>
+            <div id="filt-chart-wrap" style="display:none;">
+                <div id="filt-chart-title">Filtration Curve</div>
+                <svg id="filt-chart-svg" height="110"></svg>
             </div>
             <div id="progressbar"></div>
             <div id="step-badge">0 / 0</div>

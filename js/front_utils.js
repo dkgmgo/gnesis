@@ -162,3 +162,36 @@ export function reset(gen, state, renderer, deg_chart) {
     update_progress(state.steps, state.stepIdx);
     set_status('Reset. Press RUN to start.', false);
 }
+
+export function filtration(gen, state, filt_rend, btn_filt){
+    if(state.filtrationActive){
+        filt_rend.clear();
+        state.filtrationActive = false;
+        btn_filt.textContent = '◆ FILTRATION';
+        btn_filt.classList.remove('filt-active');
+        set_status('Filtration stopped.', false);
+    }else {
+        if (!filt_rend.gr.nodes.length) {
+            set_status('Generate a graph first, then run the filtration.', false, true);
+            return;
+        }
+        if (state.running) {
+            set_status('Wait for the completion of graph generation, then run the filtration.', false, true);
+            return;
+        }
+ 
+        state.filtrationActive = true;
+        btn_filt.textContent = '⏹ STOP FILTRATION';
+        btn_filt.classList.add('filt-active');
+        set_status('Filtration running…', true);
+ 
+        filt_rend.onDone = () => {
+            state.filtrationActive = false;
+            btn_filt.textContent = '◆ FILTRATION';
+            btn_filt.classList.remove('filt-active');
+            set_status('Filtration complete.', false);
+        };
+ 
+        filt_rend.start(get_speed());
+    }
+}

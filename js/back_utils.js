@@ -26,6 +26,52 @@ export function ollivier_ricci_curvature(snapshot){
     }
 }
 
+export function unionFind(nodes, edges, r) {
+    const par = {};
+    nodes.forEach(n => par[n.id] = n.id);
+    const find = id => par[id] === id ? id : (par[id] = find(par[id]));
+    edges.forEach(e => {
+        if (e.w / 2 <= r) {
+            const a = find(e.s.id), b = find(e.t.id);
+            if (a !== b) {
+                par[a] = b;
+            }
+        }
+    });
+    return new Set(nodes.map(n => find(n.id))).size;
+}
+
+// for the weighted case
+export function floydWarshall(nodes, edges){
+    const ids = nodes.map(n => n.id);
+    const dists = {};
+
+    ids.forEach(i => {
+        dists[i] = {};
+
+        ids.forEach(j => {
+            dists[i][j] = i === j ? 0 : Infinity;
+        });
+    });
+
+    edges.forEach( e => {
+        dists[e.s.id][e.t.id] = Math.min(e.targetDist, dists[e.s.id][e.t.id])
+        dists[e.t.id][e.s.id] = Math.min(e.targetDist, dists[e.t.id][e.s.id])
+    });
+
+    for(let k of ids){
+        for(let i of ids){
+            for(let j of ids){
+                const temp = dists[i][k] + dists[k][j];
+                if(temp < dists[i][j]){
+                    dists[i][j] = temp;
+                }
+            }
+        }
+    }
+    return dists;
+}
+
 function sinkhorn(muX, muY, distMatrix, lambda = 20, maxIter = 100, tol = 1e-9) {
     const sources = Object.keys(muX);
     const targets = Object.keys(muY);
