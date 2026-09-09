@@ -49,6 +49,33 @@ html, body {
     display: flex; flex-direction: column; gap: 20px;
 }
 
+#tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border); }
+.tab {
+    flex: 1; background: transparent; border: none;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    color: var(--muted); font-family: inherit; font-size: 0.7rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 8px 4px; cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+#app[data-mode="generate"] .mode-test { display: none; }
+#app[data-mode="test"] .mode-generate { display: none; }
+
+#file-input { display: none; }
+.file-drop {
+    display: block; text-align: center; cursor: pointer;
+    border: 1px dashed var(--border); border-radius: 6px;
+    padding: 16px 12px; color: var(--muted); font-size: 0.7rem;
+    transition: border-color 0.15s, color 0.15s;
+}
+.file-drop:hover { border-color: var(--accent); color: var(--accent); }
+#file-info { font-size: 0.65rem; color: var(--muted); margin-top: 10px; line-height: 1.55; }
+#file-info .name { color: var(--text); font-weight: 600; word-break: break-all; }
+#file-info .warn, #file-info .err { color: var(--accent2); margin-top: 6px; }
+
 .section-label { 
     font-size: 0.6rem; 
     color: var(--muted); 

@@ -17,27 +17,37 @@
     </script>
 </head>
 <body>
-    <div id="app">
+    <div id="app" data-mode="generate">
         <header id="topbar">
             <div class="logo">G<span>Nesis</span></div>
             <span>Interactive graph generation</span>
         </header>
         <aside id="sidebar">
-            <div id="generators-panel">
+            <div id="tab-bar">
+                <button class="tab active" data-mode="generate">Generator</button>
+                <button class="tab" data-mode="test">Test</button>
+            </div>
+            <div id="import-panel" class="mode-test">
+                <div class="section-label">Graph file</div>
+                <input type="file" id="file-input" accept=".graphml,.xml">
+                <label class="file-drop" for="file-input">Choose a GraphML file</label>
+                <div id="file-info"></div>
+            </div>
+            <div id="generators-panel" class="mode-generate">
                 <div class="section-label">Generator</div>
                 <select id="generators-select">
                 </select>
                 <div id="gen-desc" style="font-size: 0.7rem; color: var(--accent); margin-top: 8px;"></div>
             </div>
-            <div id="params-panel">
+            <div id="params-panel" class="mode-generate">
                 <div class="section-label">Parameters</div>
 
             </div>
             <div id="controls-panel">
                 <div class="section-label">Controls</div>
                 <div id="control-buttons">
-                    <button class="btn-primary" id="btn-run">▶ RUN</button>
-                    <button class="btn-secondary" id="btn-reset">↺ RESET</button>
+                    <button class="btn-primary mode-generate" id="btn-run">▶ RUN</button>
+                    <button class="btn-secondary mode-generate" id="btn-reset">↺ RESET</button>
                     <button class="btn-tertiary" id="btn-filt">◆ FILTRATION</button>
                 </div>
                 <div id="speed-control">
