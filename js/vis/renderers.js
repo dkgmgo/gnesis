@@ -1,3 +1,9 @@
+function edge_stroke(d) {
+    if (d._curv == null) return 'var(--edge)';
+    if (d._curv === 0) return 'rgba(255, 255, 0, 0.4)';
+    return d._curv < 0 ? 'var(--hub)' : 'rgba(0,250,0,1)';
+}
+
 export class GraphRenderer {
     constructor(svgEl) {
         this.svg = d3.select(svgEl);
@@ -40,10 +46,11 @@ export class GraphRenderer {
         link.enter().append('line')
             .attr('class','link')
             .style('opacity',0)
-            .style('stroke', d => d._curv ? d._curv < 0 ? 'var(--hub)' : 'rgba(0,250,0,0.3)' : 'rgba(0,229,255,0.25)')
+            .style('stroke', edge_stroke)
             .on('mouseover', (event, d) => this._showTooltip_edge(event, d))
             .on('mouseout', () => this._hideTooltip())
             .transition().duration(300).style('opacity',1);
+        link.style('stroke', edge_stroke); // curvature only lands on the last step
         link.exit().remove();
 
         const style_node = sel => sel
@@ -75,6 +82,13 @@ export class GraphRenderer {
         this.simulation.nodes(this.nodes);
         this.simulation.force('link').links(this.links);
         this.simulation.alpha(0.4).restart();
+    }
+
+    restyle_links() {
+        this.linkG.selectAll('line')
+            .transition().duration(300)
+            .style('opacity', 1)
+            .style('stroke', edge_stroke);
     }
 
     _hub_id(nodes) {
@@ -217,10 +231,7 @@ export class CliqueFiltrationRenderer {
  
         this.ballG.selectAll('*').remove();
  
-        this.gr.linkG.selectAll('line')
-            .transition().duration(300)
-            .style('opacity', 1)
-            .style('stroke', null);
+        this.gr.restyle_links();
  
         this.gr.unfreeze();
  
