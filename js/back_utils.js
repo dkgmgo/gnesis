@@ -9,10 +9,12 @@ export function mulberry32(seed) {
 
 export function closeness_centrality(snapshot) {
     all_pairs_sssp(snapshot);
+    const n = snapshot.nodes.length;
     for (const node of snapshot.nodes) {
         const dist = snapshot.all_pairs_sssp[node.id]
         const sumDist = Object.values(dist).reduce((a,b) => a+b, 0);
-        node._closeness = 1.0 / sumDist;
+        const reachable = Object.keys(dist).length;
+        node._closeness = (sumDist > 0 && n > 1) ? ((reachable - 1) / sumDist) * ((reachable - 1) / (n - 1)) : 0;
     }
 }
 

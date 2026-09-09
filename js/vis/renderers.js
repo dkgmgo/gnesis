@@ -27,7 +27,7 @@ export class GraphRenderer {
     update(snapshot) {
         this.nodes = snapshot.nodes.map(d => ({ ...d }));
         this.links = snapshot.edges.map(d => ({ ...d }));
-        const max_closeness =  Math.max(...this.nodes.map(n => n._closeness || 0));
+        const hub_id = this._hub_id(this.nodes);
 
         const deg = {}; // for sizing
         this.links.forEach(l => {
@@ -46,6 +46,12 @@ export class GraphRenderer {
             .transition().duration(300).style('opacity',1);
         link.exit().remove();
 
+        const style_node = sel => sel
+            .style('fill',         d => d.id === hub_id ? 'var(--hub)' : 'var(--node)')
+            .style('stroke',       d => d.id === hub_id ? 'rgba(255,77,109,0.3)' : 'rgba(0,229,255,0.25)')
+            .style('stroke-width', d => d.id === hub_id ? 3 : 1.5)
+            .style('filter',       d => d.id === hub_id ? 'drop-shadow(0 0 6px var(--hub))' : 'drop-shadow(0 0 4px var(--node))');
+
         const node = this.nodeG.selectAll('g.node').data(this.nodes, d=>d.id);
         const nodeEnter = node.enter().append('g').attr('class','node')
             .call(d3.drag()
@@ -54,23 +60,14 @@ export class GraphRenderer {
                 .on('end',   (event,d) => { if(!event.active) this.simulation.alphaTarget(0); d.fx=null; d.fy=null; })
             );
         
-        nodeEnter.append('circle')
-            .attr('r', 0)
-            .style('fill', d => d._closeness == max_closeness ? 'var(--hub)' : 'var(--node)')
-            .style('stroke', d => d._closeness == max_closeness ? 'rgba(255,77,109,0.3)' : 'rgba(0,229,255,0.25)')
-            .style('stroke-width', d => d._closeness == max_closeness ? 3 : 1.5)
-            .style('filter', d => d._closeness == max_closeness ? 'drop-shadow(0 0 6px var(--hub))' : 'drop-shadow(0 0 4px var(--node))')
+        style_node(nodeEnter.append('circle').attr('r', 0))
             .transition().duration(400).ease(d3.easeElastic)
             .attr('r', d => Math.max(4, Math.min(14, 4 + d._deg * 1.5)));
 
         nodeEnter.on('mouseover', (event, d) => this._showTooltip_node(event, d))
             .on('mouseout', () => this._hideTooltip());
 
-        node.select('circle')
-            .style('fill', d => d._closeness == max_closeness ? 'var(--hub)' : 'var(--node)')
-            .style('stroke', d => d._closeness == max_closeness ? 'rgba(255,77,109,0.3)' : 'rgba(0,229,255,0.25)')
-            .style('stroke-width', d => d._closeness == max_closeness ? 3 : 1.5)
-            .style('filter', d => d._closeness == max_closeness ? 'drop-shadow(0 0 6px var(--hub))' : 'drop-shadow(0 0 4px var(--node))')
+        style_node(node.select('circle'))
             .transition().duration(200)
             .attr('r', d => Math.max(4, Math.min(14, 4 + d._deg * 1.5)));
         node.exit().remove();
@@ -78,6 +75,15 @@ export class GraphRenderer {
         this.simulation.nodes(this.nodes);
         this.simulation.force('link').links(this.links);
         this.simulation.alpha(0.4).restart();
+    }
+
+    _hub_id(nodes) {
+        let best = null, bestVal = 0; // a score must beat 0 to win the highlight
+        for (const n of nodes) {
+            if (typeof n._closeness !== 'number' || !(n._closeness > bestVal)) continue;
+            best = n.id; bestVal = n._closeness;
+        }
+        return best;
     }
 
     _tick() {
@@ -89,7 +95,7 @@ export class GraphRenderer {
     }
 
     _showTooltip_node(event, d) {
-        const clos = d._closeness ? d._closeness.toFixed(4) : 'Calculating...';
+        const clos = typeof d._closeness === 'number' ? d._closeness.toFixed(4) : 'Calculating...';
         const tt = document.getElementById('tooltip');
         tt.innerHTML = `node ${d.id} &nbsp;·&nbsp; degree <span style="color:var(--accent)">${d._deg}</span> &nbsp;·&nbsp; closeness <span style="color:var(--accent)">${clos}</span>`;
         tt.style.left = (event.offsetX + 12) + 'px';
@@ -149,7 +155,7 @@ export class GraphRenderer {
 
 import { FiltrationChart } from './charts.js';
 import { unionFind, floydWarshall } from '../back_utils.js';
-export class RipsFiltrationRenderer {
+export class CliqueFiltrationRenderer {
     constructor(graphRenderer, chartSvg) {
         this.gr = graphRenderer;
         this.svg = graphRenderer.svg;

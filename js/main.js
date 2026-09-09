@@ -1,11 +1,11 @@
 import * as utils from './front_utils.js';
 import { GraphRenderer } from './vis/renderers.js';
 import { DegreeChart } from './vis/charts.js';
-import { RipsFiltrationRenderer } from './vis/renderers.js';
+import { CliqueFiltrationRenderer } from './vis/renderers.js';
 
 const RENDERER = new GraphRenderer(document.getElementById('graph-svg'));
 const DEG_CHART = new DegreeChart(document.getElementById('deg-chart-svg'));
-const FILT_REND = new RipsFiltrationRenderer(RENDERER, document.getElementById('filt-chart-svg'));
+const FILT_REND = new CliqueFiltrationRenderer(RENDERER, document.getElementById('filt-chart-svg'));
 const GENERATORS = utils.list_generators();
 let state = {
     currentGen : '2d-grid',

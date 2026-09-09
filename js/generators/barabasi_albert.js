@@ -6,7 +6,7 @@ export class BarabasiAlbertGenerator {
         this.description = 'A scale-free network model based on preferential attachment';
         this.id = 'barabasi-albert';
         this.params = [
-            { id: 'm0', label: 'Initial Number of Nodes', min: 1, max: 10, step: 1, default: 2 },
+            { id: 'm0', label: 'Initial Number of Nodes', min: 2, max: 10, step: 1, default: 2 },
             { id: 'm', label: 'Edges per new Node', min: 1, max: 10, step: 1, default: 1 },
             { id: 't', label: 'Number of Time Steps', min: 1, max: 100, step: 1, default: 20 },
             { id: 'seed', label: 'Random Seed', min: 0, max: 200, step: 1, default: 50 },
