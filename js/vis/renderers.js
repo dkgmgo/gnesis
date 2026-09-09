@@ -109,15 +109,15 @@ export class GraphRenderer {
     }
 
     _showTooltip_node(event, d) {
-        const clos = typeof d._closeness === 'number' ? d._closeness.toFixed(4) : 'Calculating...';
+        const clos = typeof d._closeness === 'number' ? d._closeness.toFixed(4) : 'not computed';
         const tt = document.getElementById('tooltip');
-        tt.innerHTML = `node ${d.id} &nbsp;·&nbsp; degree <span style="color:var(--accent)">${d._deg}</span> &nbsp;·&nbsp; closeness <span style="color:var(--accent)">${clos}</span>`;
+        tt.innerHTML = `node ${d.label ?? d.id} &nbsp;·&nbsp; degree <span style="color:var(--accent)">${d._deg}</span> &nbsp;·&nbsp; closeness <span style="color:var(--accent)">${clos}</span>`;
         tt.style.left = (event.offsetX + 12) + 'px';
         tt.style.top  = (event.offsetY - 28) + 'px';
         tt.style.opacity = 1;
     }
     _showTooltip_edge(event, d){
-        const curv = d._curv != null ? d._curv.toFixed(4) : 'N/A';
+        const curv = d._curv != null ? d._curv.toFixed(4) : 'not computed';
         const src = d.source.id ?? d.source;
         const tgt = d.target.id ?? d.target;
         const tt = document.getElementById('tooltip');

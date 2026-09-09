@@ -24,18 +24,6 @@ export function list_generators() {
     }
 }
 
-export function attach_metrics(snapshot) {
-    if (!snapshot) return;
-    closeness_centrality(snapshot);
-    ollivier_ricci_curvature(snapshot);
-}
-
-export function build_steps(gen, params) {
-    const steps = gen.build(params);
-    attach_metrics(steps[steps.length - 1]);
-    return steps;
-}
-
 export function build_generators_select(gens, currentGen) {
     const select = document.getElementById('generators-select');
     select.innerHTML = '';
@@ -82,6 +70,52 @@ export function get_params(params) {
     return out;
 }
 
+//the file may already carry curvature for every edge.
+const METRICS = {
+    closeness: { label: 'Closeness', btn: 'btn-closeness', run: closeness_centrality,
+                 complete: snap => (snap.nodes ?? []).every(n => typeof n._closeness === 'number') },
+    curvature: { label: 'Curvature', btn: 'btn-curvature', run: ollivier_ricci_curvature,
+                 complete: snap => (snap.edges ?? []).every(e => typeof e._curv === 'number') }
+};
+
+export function current_snapshot(state) {
+    return state.steps[state.stepIdx] ?? null;
+}
+
+export function update_metric_buttons(state) {
+    const snap = current_snapshot(state);
+    for (const m of Object.values(METRICS)) {
+        const btn = document.getElementById(m.btn);
+        if (!btn) continue;
+        const done = !!snap && m.complete(snap);
+        btn.disabled = !snap || state.running || done;
+        btn.classList.toggle('done', done);
+        btn.title = done ? `${m.label} already available for every element.` : '';
+    }
+}
+
+function after_paint(fn) {
+    if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(() => requestAnimationFrame(fn));
+    } else {
+        fn();
+    }
+}
+
+export function compute_metric(kind, state, renderer) {
+    const snap = current_snapshot(state);
+    const m = METRICS[kind];
+    if (!snap || !m || state.running || m.complete(snap)) return;
+
+    set_status(`Computing ${m.label.toLowerCase()}…`, true);
+    after_paint(() => {
+        m.run(snap);
+        renderer.update(snap);          // repaint: hub highlight, edge colours
+        update_metric_buttons(state);
+        set_status(`${m.label} computed.`, false);
+    });
+}
+
 export function set_status(msg, active=false, is_error=false) {
     let status_msg = document.getElementById('status-msg')
     status_msg.textContent = msg;
@@ -109,15 +143,18 @@ export function update_properties(snap, deg_chart) {
 }
 
 export function update_progress(steps, stepIdx) {
-    const pct = steps.length ? (stepIdx / (steps.length-1)) * 100 : 0;
+    // an imported graph is one snapshot, so there is no range: show it complete
+    const last = steps.length - 1;
+    const pct = last > 0 ? (stepIdx / last) * 100 : (steps.length ? 100 : 0);
     document.getElementById('progressbar').style.width = pct + '%';
-    document.getElementById('step-badge').textContent = `${stepIdx} / ${steps.length - 1}`;
+    document.getElementById('step-badge').textContent = `${stepIdx} / ${Math.max(last, 0)}`;
 }
 
 export function stop(state) {
     if (state.timer) clearTimeout(state.timer);
     state.running = false;
     document.getElementById('btn-run').textContent = '▶ RUN';
+    update_metric_buttons(state);
     set_status(`Done. ${state.steps.length-1} steps.`, false);
 }
 
@@ -128,6 +165,7 @@ export function tick(state, renderer, deg_chart) {
     renderer.update(state.steps[state.stepIdx]);
     update_properties(state.steps[state.stepIdx], deg_chart);
     update_progress(state.steps, state.stepIdx);
+    update_metric_buttons(state);
     state.timer = setTimeout(() => tick(state, renderer, deg_chart), get_speed());
 }
 
@@ -146,12 +184,13 @@ export function run(gen, state, renderer, deg_chart) {
 
     if (state.stepIdx >= state.steps.length - 1) {
         // restart
-        state.steps = build_steps(gen, params);
+        state.steps = gen.build(params);
         state.stepIdx = 0;
         renderer.clear();
     }
     state.running = true;
     document.getElementById('btn-run').textContent = '⏸ PAUSE';
+    update_metric_buttons(state);
     set_status(`Running ${gen.label}…`, true);
     tick(state, renderer, deg_chart);
 }
@@ -167,12 +206,13 @@ export function reset(gen, state, renderer, deg_chart) {
         return;
     }
 
-    state.steps = build_steps(gen, params);
+    state.steps = gen.build(params);
     state.stepIdx = 0;
     renderer.clear();
     deg_chart.clear();
     update_properties({ nodes:[], edges:[] }, deg_chart);
     update_progress(state.steps, state.stepIdx);
+    update_metric_buttons(state);
     set_status('Reset. Press RUN to start.', false);
 }
 
@@ -214,5 +254,68 @@ export function filtration(gen, state, filt_rend, btn_filt){
         };
  
         filt_rend.start(get_speed());
+    }
+}
+
+
+// The filename comes from the user's own file, so it is escaped
+const escape_html = str => String(str).replace(/[&<>"]/g,
+    c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+export function show_file_info(imported, error) {
+    const box = document.getElementById('file-info');
+    if (error) { box.innerHTML = `<div class="err">${escape_html(error)}</div>`; return; }
+    if (!imported) { box.innerHTML = ''; return; }
+    const { name, nodes, edges, warnings, read } = imported;
+    const lines = [`<div class="name">${escape_html(name)}</div>`,
+                   `<div>${nodes.length} nodes · ${edges.length} edges</div>`];
+    if (read) {
+        const got = Object.entries(read).filter(([, n]) => n > 0).map(([k, n]) => `${k} ${n}`);
+        if (got.length) lines.push(`<div>from file: ${got.join(' · ')}</div>`);
+    }
+    for (const w of warnings) lines.push(`<div class="warn">${escape_html(w)}</div>`);
+    box.innerHTML = lines.join('');
+}
+
+// An imported graph has no construction history, so it is a single snapshot.
+export function show_imported(state, renderer, deg_chart) {
+    renderer.clear();
+    deg_chart.clear();
+
+    if (!state.imported) {
+        state.steps = [];
+        state.stepIdx = 0;
+        update_properties({ nodes: [], edges: [] }, deg_chart);
+        update_progress(state.steps, 0);
+        update_metric_buttons(state);
+        set_status('Load a GraphML file to inspect a graph.', false);
+        return;
+    }
+
+    const { nodes, edges, name } = state.imported;
+    state.steps = [{ nodes, edges }];
+    state.stepIdx = 0;
+    renderer.update(state.steps[0]);
+    update_properties(state.steps[0], deg_chart);
+    update_progress(state.steps, 0);
+    update_metric_buttons(state);
+    set_status(`${name}: ${nodes.length} nodes, ${edges.length} edges.`, false);
+}
+
+export function set_mode(mode, state, gen, renderer, deg_chart, filt_rend, btn_filt) {
+    if (state.mode === mode) return;
+
+    stop_filtration(state, filt_rend, btn_filt);
+    stop(state);
+
+    state.mode = mode;
+    document.getElementById('app').dataset.mode = mode;
+    document.querySelectorAll('#tab-bar .tab').forEach(tab =>
+        tab.classList.toggle('active', tab.dataset.mode === mode));
+
+    if (mode === 'generate') {
+        reset(gen, state, renderer, deg_chart);
+    } else {
+        show_imported(state, renderer, deg_chart);
     }
 }

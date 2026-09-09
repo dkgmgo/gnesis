@@ -133,6 +133,12 @@ input[type=range]::-webkit-slider-thumb {
 #speed-control { display: flex; align-items: center; gap: 8px; margin-top: 12px;}
 #speed-control label { font-size: 0.65rem; color: var(--muted); white-space: nowrap; }
 
+#metric-buttons { display: flex; gap: 8px; }
+#metric-buttons button { flex: 1; }
+.btn-secondary:disabled { opacity: 0.35; cursor: default; }
+.btn-secondary:disabled:hover { border-color: var(--border); color: var(--muted); }
+.btn-secondary.done { border-color: var(--accent); color: var(--accent); }
+
 #props-panel { display: flex; flex-direction: column; gap: 8px; }
 .prop { display: flex; justify-content: space-between; }
 .prop .k { font-size: 0.65rem; color: var(--muted); }
