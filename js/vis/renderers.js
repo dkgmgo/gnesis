@@ -161,6 +161,7 @@ export class CliqueFiltrationRenderer {
         this.svg = graphRenderer.svg;
         this.g = graphRenderer.g;
         this.timer = null;
+        this.morphTimer = null;
         this.running = false;
         this.stepIdx = 0;
         this.steps = [];
@@ -171,7 +172,7 @@ export class CliqueFiltrationRenderer {
     }
 
     start(speedMs = 60, morphMs = 600) {
-        if (this.running) return;
+        if (this.running || this.morphTimer) return;
  
         const nodes = this.gr.nodes;
         const links = this.gr.links;
@@ -196,13 +197,18 @@ export class CliqueFiltrationRenderer {
             .attr('x2', d => (typeof d.target === 'object' ? d.target : { x: d.target }).x ?? d.target.x)
             .attr('y2', d => (typeof d.target === 'object' ? d.target : { x: d.target }).y ?? d.target.y);
  
-        setTimeout(() => this._beginFiltration(speedMs), morphMs + 80);
+        this.morphTimer = setTimeout(() => {
+            this.morphTimer = null;
+            this._beginFiltration(speedMs);
+        }, morphMs + 80);
     }
  
     stop() {
-        if (this.timer){ 
-            clearTimeout(this.timer);
-        }
+        // morphTimer covers the ~680ms morph window, before the first tick exists
+        if (this.timer) clearTimeout(this.timer);
+        if (this.morphTimer) clearTimeout(this.morphTimer);
+        this.timer = null;
+        this.morphTimer = null;
         this.running = false;
     }
  

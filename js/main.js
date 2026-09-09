@@ -6,6 +6,7 @@ import { CliqueFiltrationRenderer } from './vis/renderers.js';
 const RENDERER = new GraphRenderer(document.getElementById('graph-svg'));
 const DEG_CHART = new DegreeChart(document.getElementById('deg-chart-svg'));
 const FILT_REND = new CliqueFiltrationRenderer(RENDERER, document.getElementById('filt-chart-svg'));
+const BTN_FILT = document.getElementById('btn-filt');
 const GENERATORS = utils.list_generators();
 let state = {
     currentGen : '2d-grid',
@@ -20,17 +21,17 @@ document.getElementById('btn-run').addEventListener('click', () => {
     if (state.steps.length === 0){
         state.steps = GENERATORS[state.currentGen].build(utils.get_params(GENERATORS[state.currentGen].params));
     }
-    FILT_REND.clear()
+    utils.stop_filtration(state, FILT_REND, BTN_FILT);
     utils.run(GENERATORS[state.currentGen], state, RENDERER, DEG_CHART);
 });
 
 document.getElementById('btn-reset').addEventListener('click', () => {
-    FILT_REND.clear()
+    utils.stop_filtration(state, FILT_REND, BTN_FILT);
     utils.reset(GENERATORS[state.currentGen], state, RENDERER, DEG_CHART);
 });
 
-document.getElementById('btn-filt').addEventListener('click', () => {
-    utils.filtration(GENERATORS[state.currentGen], state, FILT_REND, document.getElementById('btn-filt'))
+BTN_FILT.addEventListener('click', () => {
+    utils.filtration(GENERATORS[state.currentGen], state, FILT_REND, BTN_FILT)
 });
 
 document.getElementById('speed-range').addEventListener('input', e => {
@@ -47,7 +48,7 @@ utils.build_generators_select(GENERATORS, state.currentGen);
 
 const select = document.getElementById('generators-select');
 select.addEventListener('change', () => {
-    FILT_REND.clear();
+    utils.stop_filtration(state, FILT_REND, BTN_FILT);
     utils.stop(state);
     state.currentGen = select.value;
     document.getElementById('gen-desc').textContent = GENERATORS[state.currentGen].description;

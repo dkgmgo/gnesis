@@ -163,13 +163,23 @@ export function reset(gen, state, renderer, deg_chart) {
     set_status('Reset. Press RUN to start.', false);
 }
 
+function reset_filt_ui(state, btn_filt, status) {
+    state.filtrationActive = false;
+    btn_filt.textContent = '◆ FILTRATION';
+    btn_filt.classList.remove('filt-active');
+    set_status(status, false);
+}
+
+export function stop_filtration(state, filt_rend, btn_filt) {
+    filt_rend.clear();
+    if (state.filtrationActive) {
+        reset_filt_ui(state, btn_filt, 'Filtration stopped.');
+    }
+}
+
 export function filtration(gen, state, filt_rend, btn_filt){
     if(state.filtrationActive){
-        filt_rend.clear();
-        state.filtrationActive = false;
-        btn_filt.textContent = '◆ FILTRATION';
-        btn_filt.classList.remove('filt-active');
-        set_status('Filtration stopped.', false);
+        stop_filtration(state, filt_rend, btn_filt);
     }else {
         if (!filt_rend.gr.nodes.length) {
             set_status('Generate a graph first, then run the filtration.', false, true);
@@ -186,10 +196,8 @@ export function filtration(gen, state, filt_rend, btn_filt){
         set_status('Filtration running…', true);
  
         filt_rend.onDone = () => {
-            state.filtrationActive = false;
-            btn_filt.textContent = '◆ FILTRATION';
-            btn_filt.classList.remove('filt-active');
-            set_status('Filtration complete.', false);
+            // no clear(): the finished curve and balls stay on screen
+            reset_filt_ui(state, btn_filt, 'Filtration complete.');
         };
  
         filt_rend.start(get_speed());
