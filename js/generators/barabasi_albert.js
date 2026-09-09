@@ -1,4 +1,4 @@
-import * as utils from '../back_utils.js';
+import { mulberry32 } from '../back_utils.js';
 
 export class BarabasiAlbertGenerator {
     constructor(){
@@ -25,7 +25,7 @@ export class BarabasiAlbertGenerator {
 
     build({ m0, m, t, seed }) {
         this._degrees = {};
-        this._rng = utils.mulberry32(seed);
+        this._rng = mulberry32(seed);
         this._repeated_nodes = [];
         const nodes = [], edges = [], steps = []; 
 
@@ -54,8 +54,6 @@ export class BarabasiAlbertGenerator {
             });
             steps.push({ nodes: nodes.map(d=>({...d})), edges: edges.map(d=>({...d})) });
         }
-        utils.closeness_centrality(steps[steps.length - 1]);
-        utils.ollivier_ricci_curvature(steps[steps.length - 1]);
         return steps;
     }
 

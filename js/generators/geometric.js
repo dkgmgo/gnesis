@@ -1,4 +1,4 @@
-import * as utils from '../back_utils.js';
+import { mulberry32 } from '../back_utils.js';
 
 export class RGGGenerator {
     constructor(){
@@ -13,7 +13,7 @@ export class RGGGenerator {
     }
 
     build({n, r, seed}){
-        const rnd = utils.mulberry32(seed);
+        const rnd = mulberry32(seed);
         const nodes = [], edges = [], steps = [];
 
         for (let i=0; i<n; i++){
@@ -33,8 +33,6 @@ export class RGGGenerator {
             }
             steps.push({ nodes: nodes.map(d=>({...d})), edges: edges.map(d=>({...d})) });
         }
-        utils.closeness_centrality(steps[steps.length - 1]);
-        utils.ollivier_ricci_curvature(steps[steps.length - 1]);
         return steps;
     }
 

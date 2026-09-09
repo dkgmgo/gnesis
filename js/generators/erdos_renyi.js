@@ -1,4 +1,4 @@
-import * as utils from '../back_utils.js';
+import { mulberry32 } from '../back_utils.js';
 
 export class ErdosRenyiGenerator{
     constructor(){
@@ -16,7 +16,7 @@ export class ErdosRenyiGenerator{
         const nodes = Array.from({length: n}, (_,i) => ({ id: i, step: i }));
         const edges = [];
         const steps = [];
-        const rnd = utils.mulberry32(seed);
+        const rnd = mulberry32(seed);
         for (let i = 0; i < n; i++) {
             for (let j = i+1; j < n; j++){
                 if (rnd() < prob){
@@ -25,8 +25,6 @@ export class ErdosRenyiGenerator{
             }
             steps.push({ nodes: nodes.map(d=>({...d})), edges: edges.map(d=>({...d})) });
         }
-        utils.closeness_centrality(steps[steps.length - 1]);
-        utils.ollivier_ricci_curvature(steps[steps.length - 1]);
         return steps;
     }
 }

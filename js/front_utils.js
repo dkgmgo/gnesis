@@ -4,6 +4,7 @@ import { ErdosRenyiGenerator } from "./generators/erdos_renyi.js";
 import { WattsStrogatzGenerator } from "./generators/watts-strogatz.js";
 import { RGGGenerator } from "./generators/geometric.js";
 import { SBMGenerator } from "./generators/sbm.js";
+import { closeness_centrality, ollivier_ricci_curvature } from "./back_utils.js";
 
 const grid_gen = new GridGenerator();
 const ba_gen = new BarabasiAlbertGenerator();
@@ -21,6 +22,18 @@ export function list_generators() {
         'random-geometric': rgg_gen,
         'sbm': sbm_gen
     }
+}
+
+export function attach_metrics(snapshot) {
+    if (!snapshot) return;
+    closeness_centrality(snapshot);
+    ollivier_ricci_curvature(snapshot);
+}
+
+export function build_steps(gen, params) {
+    const steps = gen.build(params);
+    attach_metrics(steps[steps.length - 1]);
+    return steps;
 }
 
 export function build_generators_select(gens, currentGen) {
@@ -133,7 +146,7 @@ export function run(gen, state, renderer, deg_chart) {
 
     if (state.stepIdx >= state.steps.length - 1) {
         // restart
-        state.steps = gen.build(params);
+        state.steps = build_steps(gen, params);
         state.stepIdx = 0;
         renderer.clear();
     }
@@ -154,7 +167,7 @@ export function reset(gen, state, renderer, deg_chart) {
         return;
     }
 
-    state.steps = gen.build(params);
+    state.steps = build_steps(gen, params);
     state.stepIdx = 0;
     renderer.clear();
     deg_chart.clear();

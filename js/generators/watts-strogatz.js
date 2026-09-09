@@ -1,4 +1,4 @@
-import * as utils from "../back_utils.js"
+import { mulberry32 } from '../back_utils.js';
 
 export class WattsStrogatzGenerator{
     constructor(){
@@ -36,7 +36,7 @@ export class WattsStrogatzGenerator{
             }
         }
         const steps = [{ nodes: nodes.map(d=>({...d})), edges: edges.map(d=>({...d})) }];
-        const rnd = utils.mulberry32(seed);
+        const rnd = mulberry32(seed);
         
         //rewiring
         for (let e of edges) {
@@ -55,8 +55,6 @@ export class WattsStrogatzGenerator{
             }
             steps.push({ nodes: nodes.map(d=>({...d})), edges: edges.map(d=>({...d})) });
         }
-        utils.closeness_centrality(steps[steps.length - 1]);
-        utils.ollivier_ricci_curvature(steps[steps.length - 1]);
         return steps;
     }
 }

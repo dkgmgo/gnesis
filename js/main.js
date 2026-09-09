@@ -19,7 +19,7 @@ let state = {
 
 document.getElementById('btn-run').addEventListener('click', () => {
     if (state.steps.length === 0){
-        state.steps = GENERATORS[state.currentGen].build(utils.get_params(GENERATORS[state.currentGen].params));
+        state.steps = utils.build_steps(GENERATORS[state.currentGen], utils.get_params(GENERATORS[state.currentGen].params));
     }
     utils.stop_filtration(state, FILT_REND, BTN_FILT);
     utils.run(GENERATORS[state.currentGen], state, RENDERER, DEG_CHART);
@@ -58,5 +58,5 @@ select.addEventListener('change', () => {
 
 document.getElementById('gen-desc').textContent = GENERATORS[state.currentGen].description;
 utils.build_params_panel(GENERATORS[state.currentGen]);
-state.steps = GENERATORS[state.currentGen].build(utils.get_params(GENERATORS[state.currentGen].params));
+state.steps = utils.build_steps(GENERATORS[state.currentGen], utils.get_params(GENERATORS[state.currentGen].params));
 utils.set_status('Ready. Press RUN to start.', false);
