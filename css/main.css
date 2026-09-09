@@ -135,9 +135,9 @@ input[type=range]::-webkit-slider-thumb {
 
 #metric-buttons { display: flex; gap: 8px; }
 #metric-buttons button { flex: 1; }
-.btn-secondary:disabled { opacity: 0.35; cursor: default; }
+.btn-secondary.ready { border-color: var(--accent); color: var(--accent); }
+.btn-secondary:disabled { opacity: 0.45; cursor: default; }
 .btn-secondary:disabled:hover { border-color: var(--border); color: var(--muted); }
-.btn-secondary.done { border-color: var(--accent); color: var(--accent); }
 
 #props-panel { display: flex; flex-direction: column; gap: 8px; }
 .prop { display: flex; justify-content: space-between; }

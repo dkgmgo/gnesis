@@ -82,14 +82,16 @@ export function current_snapshot(state) {
     return state.steps[state.stepIdx] ?? null;
 }
 
-export function update_metric_buttons(state) {
-    const snap = current_snapshot(state);
+export function update_metric_buttons(state, renderer) {
+    const shown = !!renderer?.nodes?.length;
+    const snap = shown ? current_snapshot(state) : null;
     for (const m of Object.values(METRICS)) {
         const btn = document.getElementById(m.btn);
         if (!btn) continue;
         const done = !!snap && m.complete(snap);
-        btn.disabled = !snap || state.running || done;
-        btn.classList.toggle('done', done);
+        const ready = !!snap && !state.running && !done;
+        btn.disabled = !ready;
+        btn.classList.toggle('ready', ready);
         btn.title = done ? `${m.label} already available for every element.` : '';
     }
 }
@@ -106,12 +108,13 @@ export function compute_metric(kind, state, renderer) {
     const snap = current_snapshot(state);
     const m = METRICS[kind];
     if (!snap || !m || state.running || m.complete(snap)) return;
+    if (!renderer?.nodes?.length) return;
 
     set_status(`Computing ${m.label.toLowerCase()}…`, true);
     after_paint(() => {
         m.run(snap);
         renderer.update(snap);          // repaint: hub highlight, edge colours
-        update_metric_buttons(state);
+        update_metric_buttons(state, renderer);
         set_status(`${m.label} computed.`, false);
     });
 }
@@ -154,24 +157,29 @@ export function stop(state) {
     if (state.timer) clearTimeout(state.timer);
     state.running = false;
     document.getElementById('btn-run').textContent = '▶ RUN';
-    update_metric_buttons(state);
     set_status(`Done. ${state.steps.length-1} steps.`, false);
 }
 
 export function tick(state, renderer, deg_chart) {
     if (!state.running) return;
-    if (state.stepIdx >= state.steps.length - 1) { stop(state); return; }
+    if (state.stepIdx >= state.steps.length - 1) {
+        stop(state);
+        update_metric_buttons(state, renderer);
+        return;
+    }
     state.stepIdx++;
     renderer.update(state.steps[state.stepIdx]);
     update_properties(state.steps[state.stepIdx], deg_chart);
     update_progress(state.steps, state.stepIdx);
-    update_metric_buttons(state);
+    update_metric_buttons(state, renderer);
     state.timer = setTimeout(() => tick(state, renderer, deg_chart), get_speed());
 }
 
 export function run(gen, state, renderer, deg_chart) {
-    if (state.running) { 
-        stop(state); return; 
+    if (state.running) {
+        stop(state);
+        update_metric_buttons(state, renderer);
+        return;
     }
 
     const params = get_params(gen.params);
@@ -190,7 +198,7 @@ export function run(gen, state, renderer, deg_chart) {
     }
     state.running = true;
     document.getElementById('btn-run').textContent = '⏸ PAUSE';
-    update_metric_buttons(state);
+    update_metric_buttons(state, renderer);
     set_status(`Running ${gen.label}…`, true);
     tick(state, renderer, deg_chart);
 }
@@ -212,7 +220,7 @@ export function reset(gen, state, renderer, deg_chart) {
     deg_chart.clear();
     update_properties({ nodes:[], edges:[] }, deg_chart);
     update_progress(state.steps, state.stepIdx);
-    update_metric_buttons(state);
+    update_metric_buttons(state, renderer);
     set_status('Reset. Press RUN to start.', false);
 }
 
@@ -287,7 +295,7 @@ export function show_imported(state, renderer, deg_chart) {
         state.stepIdx = 0;
         update_properties({ nodes: [], edges: [] }, deg_chart);
         update_progress(state.steps, 0);
-        update_metric_buttons(state);
+        update_metric_buttons(state, renderer);
         set_status('Load a GraphML file to inspect a graph.', false);
         return;
     }
@@ -298,7 +306,7 @@ export function show_imported(state, renderer, deg_chart) {
     renderer.update(state.steps[0]);
     update_properties(state.steps[0], deg_chart);
     update_progress(state.steps, 0);
-    update_metric_buttons(state);
+    update_metric_buttons(state, renderer);
     set_status(`${name}: ${nodes.length} nodes, ${edges.length} edges.`, false);
 }
 

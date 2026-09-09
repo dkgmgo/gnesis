@@ -90,5 +90,5 @@ select.addEventListener('change', () => {
 document.getElementById('gen-desc').textContent = GENERATORS[state.currentGen].description;
 utils.build_params_panel(GENERATORS[state.currentGen]);
 state.steps = GENERATORS[state.currentGen].build(utils.get_params(GENERATORS[state.currentGen].params));
-utils.update_metric_buttons(state);
+utils.update_metric_buttons(state, RENDERER);
 utils.set_status('Ready. Press RUN to start.', false);
